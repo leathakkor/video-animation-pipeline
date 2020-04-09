@@ -132,11 +132,8 @@ def generateVideo(wav_forms, workingDir, video_name, videoConfig):
     [t.join() for t in threads]
     
     for t4 in range(24):
-        #my_path = os.path.join(workingDir, "holding" + str(t4) + ".png")
         imgcv = get_opencv_img_from_buffer(frames[t4])
-        # ~ imgcv = cv2.imread(my_path)
         video.write(imgcv)
-        #os.remove(my_path)
         
     print ("")
     
@@ -154,10 +151,7 @@ def generateVideo(wav_forms, workingDir, video_name, videoConfig):
         
         for t4 in range(24):
             imgcv = get_opencv_img_from_buffer(frames[t4])
-            # ~ my_path = os.path.join(workingDir, "holding" + str(t4) + ".png")
-            # ~ imgcv = cv2.imread(my_path)
             video.write(imgcv)
-            #os.remove(my_path)
         print("")
     
     threads = []
@@ -172,10 +166,7 @@ def generateVideo(wav_forms, workingDir, video_name, videoConfig):
     
     for t4 in range(24):
         imgcv = get_opencv_img_from_buffer(frames[t4])
-        # ~ my_path = os.path.join(workingDir, "holding" + str(t4) + ".png")
-        # ~ imgcv = cv2.imread(my_path)
         video.write(imgcv)
-        #os.remove(my_path)
     
     print("")
     cv2.destroyAllWindows()  
