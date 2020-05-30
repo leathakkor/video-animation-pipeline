@@ -20,14 +20,20 @@ from io import BytesIO
 import importlib, importlib.util
 
 class Cache:
-    def __init__(self):
+    def __init__(self, lookupPath):
+        self.__lookupPath = lookupPath
         self.__images = [None] * 24
         for v in range(24): self.__images[v] = {}
     
     def getImage(self, name, i):
         thread_cache = self.__images[i]
         if name not in thread_cache:
-            with open(name, 'rb') as fin:
+            
+            imgPath = os.path.join(self.__lookupPath, name)
+            if not os.path.isfile(imgPath):
+                imgPath = name
+            
+            with open(imgPath, 'rb') as fin:
                 data = BytesIO(fin.read())
                 data.flush()
                 thread_cache[name] = data
