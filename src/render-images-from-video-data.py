@@ -12,9 +12,31 @@ import cv2
 from PIL import Image
 import threading
 import sys
-from StringIO import StringIO
+#from StringIO import StringIO
 from io import BytesIO
-  
+
+
+#from importlib import import_module
+import importlib, importlib.util
+
+class Cache:
+    def __init__(self):
+        self.__images = [None] * 24
+        for v in range(24): self.__images[v] = {}
+    
+    def getImage(self, name, i):
+        thread_cache = self.__images[i]
+        if name not in thread_cache:
+            with open(name, 'rb') as fin:
+                data = BytesIO(fin.read())
+                data.flush()
+                thread_cache[name] = data
+                print ( ("preloading: ", i, name))
+        
+        stream = thread_cache[name]
+        stream.seek(0)
+        return Image.open(stream).convert("RGBA")
+        
 
 def convertData(items):
     rez = []
@@ -33,19 +55,22 @@ def convertData(items):
     
 
 class SoundSlice:
-    def __init__(self, prev, this, next, second, i, max):
+    def __init__(self, prev, this, next, second, frame, max):
         self.prev = prev;
         self.this = this;
         self.next = next;
-        self.i = i;
+        self.frame = frame;
         self.second = second;
         self.max = max;
 
 class State:
-    def __init__(self, slices):
+    def __init__(self, slices, cache, second, frame):
         self.slices = slices;
         self.data = {};
         self.hashes = [];
+        self.cache = cache
+        self.second = second
+        self.frame = frame
         
 def getItem(arr, i, offset):
     if (i + offset) < 0:
@@ -54,7 +79,7 @@ def getItem(arr, i, offset):
         return [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     return arr[i + offset]
     
-def renderHolding(workingDir, wav_forms, i, x, videoConfig, frames):
+def renderHolding(workingDir, wav_forms, i, x, videoConfig, frames, draw_lookup, cache):
     
     state_data = []
     
@@ -64,7 +89,7 @@ def renderHolding(workingDir, wav_forms, i, x, videoConfig, frames):
         introSlice = SoundSlice(getItem(introItems, i, -1), getItem(introItems, i, 0), getItem(introItems, i, 1), i, x, maxIntro)
         state_data.append(introSlice)
         
-    img = render(State(state_data), videoConfig)
+    img = render(State(state_data, cache, i, x), videoConfig, draw_lookup)
     # ~ img.save(os.path.join(workingDir, "holding" + str(x) + ".png"), 'PNG')
     #print ("Saving: ", x)
     img.save(frames[x], "PNG")
@@ -117,15 +142,27 @@ def generateVideo(wav_forms, workingDir, video_name, videoConfig):
         print(wav_form["name"], ":", wav_form["max_amplitude"], wav_form["data_length"])
     print ("max-len:", maxLen)
     
+    cache = Cache();
+    
     
     fourcc = cv2.VideoWriter_fourcc(*'XVID') 
     video = cv2.VideoWriter(video_name, fourcc, 24, (1280, 720))  
     
+    includes = [f for f in os.listdir('drawers') if f.endswith(".py")]
+    drawers = {}
+    #os.listdir("drawer");
+    for include in includes:
+        spec = importlib.util.spec_from_file_location("module.name", os.path.join("drawers", include))
+        foo = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(foo)
+        drawers[foo.name()] = foo.provider()
+        
+    
     threads = []
     frames = [None] * 24
-    for i in range(24): frames[i] = BytesIO()
+    for ii in range(24): frames[ii] = BytesIO()
     for x in range(24):
-        t1 = threading.Thread(target=renderHolding, args=(workingDir, wav_forms, 0, x, videoConfig, frames))
+        t1 = threading.Thread(target=renderHolding, args=(workingDir, wav_forms, 0, x, videoConfig, frames, drawers, cache))
         threads.append(t1)
     
     [t.start() for t in threads]
@@ -141,9 +178,9 @@ def generateVideo(wav_forms, workingDir, video_name, videoConfig):
         print(i),
         threads = []
         frames = [None] * 24
-        for i in range(24): frames[i] = BytesIO()
+        for ii in range(24): frames[ii] = BytesIO()
         for x in range(24):
-            t1 = threading.Thread(target=renderHolding, args=(workingDir, wav_forms, i, x, videoConfig, frames))
+            t1 = threading.Thread(target=renderHolding, args=(workingDir, wav_forms, i, x, videoConfig, frames, drawers, cache))
             threads.append(t1)
             
         [t.start() for t in threads]
@@ -156,9 +193,9 @@ def generateVideo(wav_forms, workingDir, video_name, videoConfig):
     
     threads = []
     frames = [None] * 24
-    for i in range(24): frames[i] = BytesIO()
+    for ii in range(24): frames[ii] = BytesIO()
     for x in range(24):
-        t1 = threading.Thread(target=renderHolding, args=(workingDir, wav_forms, maxLen - 1, x, videoConfig, frames))
+        t1 = threading.Thread(target=renderHolding, args=(workingDir, wav_forms, maxLen - 1, x, videoConfig, frames, drawers, cache))
         threads.append(t1)
     
     [t.start() for t in threads]
@@ -187,7 +224,7 @@ def generateAudioVideo(dirlook, workingDir, wav_forms, video_name, outputPath):
     args.append("amix=inputs=" + str(len(wav_forms)) + ":duration=longest")
     args.append(os.path.join(workingDir, "dual-with-intro.mp3"))
             
-    # ~ subprocess.call(args)
+    subprocess.call(args)
     # ~ args = [
             # ~ "lame", 
             # ~ "--scale", "3", 

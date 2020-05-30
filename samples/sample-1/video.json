@@ -1,0 +1,143 @@
+{
+    "videoOutputName": "video.avi",
+    "tracks":[
+        {
+            "name": "track1.ogg"
+        },
+    
+        {
+            "name": "track2.ogg"
+        }
+    ],
+    "rendering": {
+        "width": 1280,
+        "height": 720,
+        "layers" : [
+                     {
+                        "anchor":"fill",
+                        "anchor_parameters":{},
+                        "drawer": "image",
+                        "drawer_parameters": {
+                            "image": "parts/chris.png"
+                        },
+                        "layers":[
+                            {
+                                "anchor":"Left",
+                                "anchor_parameters":{
+                                    "percent":50
+                                },
+                                "drawer": "None",
+                                "drawer_parameters": {},
+                                "layers": [
+                                            {
+                                                 "anchor":"fill",
+                                                 "anchor_parameters":{
+                                                     "margin-top-px": 100,
+                                                     "margin-left-px": 100,
+                                                     "margin-bottom-px": 100,
+                                                     "margin-right-px": 100
+                                                 },
+                                                 "drawer": "image",
+                                                 "drawer_parameters": {
+                                                     "image": "parts/scott-face.png"
+                                                 },
+                                                 "layers": [
+                                                              {
+                                                                   "anchor":"fill",
+                                                                   "anchor_parameters":{
+                                                                       "height": 200,
+                                                                       "width": 375,
+                                                                       "center-horizontal": true,
+                                                                       "margin-top-px": 130
+                                                                   },
+                                                                   "drawer": "blinker",
+                                                                   "drawer_parameters": {
+                                                                       "image": "parts/eyes.png",
+                                                                       "state_index": 0,
+                                                                       "min_i": 14,
+                                                                       "max_i": 18,
+                                                                       "second_offset": 11,
+                                                                       "second_mod": 13
+                                                                   }
+                                                              },
+                                                              {
+                                                                   "anchor":"fill",
+                                                                   "anchor_parameters":{
+                                                                       "height": 150,
+                                                                       "width": 200,
+                                                                       "center-horizontal": true,
+                                                                       "margin-top-px": 370
+                                                                   },
+                                                                   "drawer": "talker_v1",
+                                                                   "drawer_parameters": {
+                                                                       "image": "parts/mouth.png",
+                                                                       "state_index": 0
+                                                                   }
+                                                              }
+                                                          ]
+                                            }
+                                          ]
+                            },
+                            {
+                                "anchor":"Right",
+                                "anchor_parameters":{
+                                    "percent":50
+                                },
+                                "drawer": "None",
+                                "drawer_parameters": {},
+                                "layers": [
+                                            {
+                                                 "anchor":"fill",
+                                                 "anchor_parameters":{
+                                                     "margin-top-px": 100,
+                                                     "margin-left-px": 100,
+                                                     "margin-bottom-px": 100,
+                                                     "margin-right-px": 100
+                                                 },
+                                                 "drawer": "image",
+                                                 "drawer_parameters": {
+                                                     "image": "parts/dawn-face.png"
+                                                 },
+                                                 "layers": [
+                                                              {
+                                                                   "anchor":"fill",
+                                                                   "anchor_parameters":{
+                                                                       "height": 200,
+                                                                       "width": 325,
+                                                                       "center-horizontal": true,
+                                                                       "margin-top-px": 130
+                                                                   },
+                                                                   "drawer": "blinker",
+                                                                   "drawer_parameters": {
+                                                                       "image": "parts/eyes.png",
+                                                                       "state_index": 1,
+                                                                       "min_i": 0,
+                                                                       "max_i": 7,
+                                                                       "second_mod": 11,
+                                                                       "second_offset": 7,
+                                                                       "reverse": true
+                                                                   }
+                                                              },
+                                                              {
+                                                                   "anchor":"fill",
+                                                                   "anchor_parameters":{
+                                                                       "height": 130,
+                                                                       "width": 200,
+                                                                       "center-horizontal": true,
+                                                                       "margin-top-px": 370
+                                                                   },
+                                                                   "drawer": "talker_v1",
+                                                                   "drawer_parameters": {
+                                                                       "image": "parts/mouth.png",
+                                                                       "state_index": 1
+                                                                   }
+                                                              }
+                                                          ]
+                                            }
+                                          ]
+                            }
+                        ]
+            }
+        ]
+    }
+}
