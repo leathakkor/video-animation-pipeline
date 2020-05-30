@@ -100,7 +100,7 @@ def renderHolding(workingDir, wav_forms, i, x, videoConfig, frames, draw_lookup,
     #print ("Saving: ", x)
     img.save(frames[x], "PNG")
 
-def generateWaveForm(track_name, dirlook, workingDir, file):
+def generateWaveForm(track_name, appDir, dirlook, workingDir, file):
     #onlyfiles = [f for f in os.listdir(dirlook) if os.path.isfile( os.path.join(dirlook, f) )]
     
     intro = file #next(f for f in onlyfiles if "intro" in f.lower() and f.endswith(".ogg"))
@@ -110,7 +110,9 @@ def generateWaveForm(track_name, dirlook, workingDir, file):
     
     print (track_name, ":", intro, introOut)
     
-    args = ["apps/audiowaveform", "-i", introIn, "-o", introOut, "--pixels-per-second", "24" ]
+    audiowaveform = os.path.join(appDir, "apps/audiowaveform")
+    # ~ print(audiowaveform)
+    args = [audiowaveform, "-i", introIn, "-o", introOut, "--pixels-per-second", "24" ]
     subprocess.call(args)
     
     introdata = {}
@@ -139,8 +141,9 @@ def get_opencv_img_from_buffer(img_stream, cv2_img_flag=0):
     img = cv2.imdecode(img_array, 1) # , cv2.IMREAD_UNCHANGED
     return img
 
-def generateVideo(wav_forms, workingDir, video_name, videoConfig):
-    onlyfiles = [f for f in os.listdir(dirlook) if os.path.isfile( os.path.join(dirlook, f) )]
+def generateVideo(wav_forms, appDir, projectDir, workingDir, video_name, videoConfig):
+    
+    onlyfiles = [f for f in os.listdir(workingDir) if os.path.isfile( os.path.join(workingDir, f) )]
     
     maxLen = max(wav_forms, key = lambda x: x["data_length"])["data_length"]
     
@@ -148,17 +151,18 @@ def generateVideo(wav_forms, workingDir, video_name, videoConfig):
         print(wav_form["name"], ":", wav_form["max_amplitude"], wav_form["data_length"])
     print ("max-len:", maxLen)
     
-    cache = Cache();
+    cache = Cache(projectDir);
     
     
     fourcc = cv2.VideoWriter_fourcc(*'XVID') 
     video = cv2.VideoWriter(video_name, fourcc, 24, (1280, 720))  
     
-    includes = [f for f in os.listdir('drawers') if f.endswith(".py")]
+    drawersDir = os.path.join(appDir, "src/drawers")
+    includes = [f for f in os.listdir(drawersDir) if f.endswith(".py")]
     drawers = {}
     #os.listdir("drawer");
     for include in includes:
-        spec = importlib.util.spec_from_file_location("module.name", os.path.join("drawers", include))
+        spec = importlib.util.spec_from_file_location("module.name", os.path.join(drawersDir, include))
         foo = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(foo)
         drawers[foo.name()] = foo.provider()
@@ -217,7 +221,7 @@ def generateVideo(wav_forms, workingDir, video_name, videoConfig):
 
 def generateAudioVideo(dirlook, workingDir, wav_forms, video_name, outputPath):
     
-    onlyfiles = [f for f in os.listdir(dirlook) if os.path.isfile( os.path.join(dirlook, f) )]
+    #onlyfiles = [f for f in os.listdir(dirlook) if os.path.isfile( os.path.join(dirlook, f) )]
     
     
     # ffmpeg -i input0.mp3 -i input1.mp3 -filter_complex amix=inputs=2:duration=longest output.mp3
@@ -259,10 +263,18 @@ def generateAudioVideo(dirlook, workingDir, wav_forms, video_name, outputPath):
 
 #print 'Number of arguments:', len(sys.argv), 'arguments.'
 configPath = sys.argv[1];
-dirlook = os.path.split(configPath)[0];
+projectDir = os.path.split(configPath)[0];
+working = os.path.join(projectDir, "working")
+
+
+baseDir = os.path.realpath(__file__)
+basePath = os.path.split(baseDir)[0];
+appDir = os.path.split(basePath)[0];
 
 print('Processing: ', configPath)
-print('Path: ', dirlook)
+print('AppDir: ',     appDir)
+print('ProjectDir: ', projectDir)
+print('WorkingDir: ', working)
 
 config = {}
 with open(configPath) as f:
@@ -272,7 +284,6 @@ with open(configPath) as f:
 #id = uuid.uuid4().hex
 
 
-working = os.path.join(dirlook, "working")
 if not os.path.exists(working):
     os.makedirs(working)
 
@@ -280,11 +291,11 @@ wav_forms = []
 for track in config["tracks"]:
     name = track["name"]
     print(track["name"])
-    wav_forms.append(generateWaveForm(name, dirlook, working, name))
+    wav_forms.append(generateWaveForm(name, appDir, projectDir, working, name))
 
 
-generateVideo(wav_forms, working, os.path.join(working, "no-sound.avi"), config["rendering"])
-generateAudioVideo(dirlook, working, wav_forms, os.path.join(working, "no-sound.avi"), os.path.join(dirlook, config["videoOutputName"]))
+generateVideo(wav_forms, appDir, projectDir, working, os.path.join(working, "no-sound.avi"), config["rendering"])
+generateAudioVideo(projectDir, working, wav_forms, os.path.join(working, "no-sound.avi"), os.path.join(projectDir, config["videoOutputName"]))
 
 
 #

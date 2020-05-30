@@ -1,1 +1,1 @@
-python3 ../../render-images-from-video-data.py video.json
+python3 ./../../src/render-images-from-video-data.py video.json
